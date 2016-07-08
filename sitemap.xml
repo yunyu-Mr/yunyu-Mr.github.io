@@ -2,23 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://www.example.com/</loc>
+    <loc>http://yunyu-mr.github.io/</loc>
     <lastmod>2016-07-08T15:55:20+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://www.example.com/about/</loc>
+    <loc>http://yunyu-mr.github.io/about/</loc>
     <lastmod>2016-07-08T15:55:20+08:00</lastmod>
   </url>
   
   <url>
-    <loc>http://www.example.com/cloud/raft/</loc>
+    <loc>http://yunyu-mr.github.io/cloud/raft/</loc>
     <lastmod>2016-07-08T09:59:36+08:00</lastmod>
   </url>
   
   <url>
-    <loc>http://www.example.com/2016/07/08/example/</loc>
+    <loc>http://yunyu-mr.github.io/2016/07/08/example/</loc>
     <lastmod>2016-07-08T09:45:19+08:00</lastmod>
   </url>
   
