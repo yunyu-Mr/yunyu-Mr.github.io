@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>骚铭科技的博客（建设中）</title>
+    <link>http://www.example.com/</link>
+    <description>Recent content on 骚铭科技的博客（建设中）</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-EN</language>
+    <managingEditor>yourname@example.com (骚铭)</managingEditor>
+    <webMaster>yourname@example.com (骚铭)</webMaster>
+    <copyright>(c) 2016 骚铭科技 SM-Tech!.</copyright>
+    <lastBuildDate>Fri, 08 Jul 2016 15:55:20 +0800</lastBuildDate>
+    <atom:link href="http://www.example.com/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>关于骚铭科技</title>
+      <link>http://www.example.com/about/</link>
+      <pubDate>Fri, 08 Jul 2016 15:55:20 +0800</pubDate>
+      <author>yourname@example.com (骚铭)</author>
+      <guid>http://www.example.com/about/</guid>
+      <description>&lt;p&gt;毕业于中山大学 数据科学与计算机学院&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Raft -- Understandable Distributed Consensus</title>
+      <link>http://www.example.com/cloud/raft/</link>
+      <pubDate>Fri, 08 Jul 2016 09:59:36 +0800</pubDate>
+      <author>yourname@example.com (骚铭)</author>
+      <guid>http://www.example.com/cloud/raft/</guid>
+      <description>
+
+&lt;h2 id=&#34;简介&#34;&gt;简介&lt;/h2&gt;
+
+&lt;p&gt;​   Raft 是一个便于理解的一致性算法(Consensus algorithm)，在此之前，最为著名的就是 Paxos 算法。很多一致性算法都是基于paxos的，但说实话，paxos真特么难以理解，看来看去只能看懂算法流程，无法理解为什么work。而Raft 要好理解的多。看动画演示可以理解大致算法流程和如何容错，具体细节可以看 Raft 论文。&lt;/p&gt;
+
+&lt;p&gt;​   &lt;a href=&#34;thesecretlivesofdata.com/raft/&#34;&gt;动画演示&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;​   &lt;a href=&#34;http://nil.csail.mit.edu/6.824/2016/papers/raft-extended.pdf&#34;&gt;Raft paper&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;​   文章中对一致性算法的定义我觉得不错:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;​ Consensus algorithms allow a collection of machines to work as a coherent group that can survive the fail-ures of some of its members.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;​   一致性算法使得一个&lt;strong&gt;机群&lt;/strong&gt;可以像一个协同相关的&lt;strong&gt;小组&lt;/strong&gt;一样工作，即使在某些机器挂掉的情况下也能正常工作。&lt;/p&gt;
+
+&lt;h3 id=&#34;关键问题-如何避免大脑分裂-split-brain&#34;&gt;关键问题：如何避免大脑分裂（split brain）?&lt;/h3&gt;
+
+&lt;p&gt;要避免大脑分裂，需要避免两个问题：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Crashed：即使某个member挂了，整个机群仍然可以正常工作，也即容错。&lt;/li&gt;
+&lt;li&gt;Partition：即使机群因为通信异常被分成两份，仍然可以工作，也即可以避免网络分割。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;状态机&#34;&gt;状态机&lt;/h2&gt;
+
+&lt;h2 id=&#34;算法流程&#34;&gt;算法流程&lt;/h2&gt;
+
+&lt;p&gt;Raft 主要有两个步骤：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;选举：Leader election&lt;/li&gt;
+&lt;li&gt;复制：Log replication&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;每个 member 可能有三种角色（状态）：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Leader&lt;/li&gt;
+&lt;li&gt;Candidate&lt;/li&gt;
+&lt;li&gt;Follower&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;leader-election&#34;&gt;Leader Election&lt;/h3&gt;
+
+&lt;p&gt;Raft 中Leader的思想跟Paxos算法中的有点相似，第一步都是要确定一个Leader。那么怎么选举呢？这里涉及两个超时：election timeout 跟 vote timeout。&lt;/p&gt;
+
+&lt;p&gt;首先，选举超时的 follower 会变成 candidate，然后他就会发送 RequestVote 请求。&lt;/p&gt;
+
+&lt;p&gt;然后，进入选举模式，该 candidate 等待 大部分（majority）成员的响应。如果等了很久都没反应，这时投票超时，candidate 会再次发起选举请求；如果大部分成员及时回复Ok，那么candidate 就变成 leader。&lt;/p&gt;
+
+&lt;p&gt;选出 leader 后，它必须周期性地发送 heartbeat 保持存在感。只要心跳及时回复，leader 就一直保持领导地位。一旦任意一个 follower 选举超时，就会重新选举。&lt;/p&gt;
+
+&lt;h3 id=&#34;log-replication&#34;&gt;Log Replication&lt;/h3&gt;
+
+&lt;p&gt;Client 把指令发给 leader， leader 负责备份指令。&lt;/p&gt;
+
+&lt;p&gt;首先，client 将指令发给 leader，leader 把指令写入自己的 log 序列中。&lt;/p&gt;
+
+&lt;p&gt;然后，leader 向 follower 发送 AppendEntry 请求（其实就是加在心跳中）。Follower 收到请求后，将指令写入自己的 log 序列中，并回复Ok。&lt;/p&gt;
+
+&lt;p&gt;最后，如果 leader 得到大部分成员的通过，他就会将指令写入&lt;strong&gt;状态机&lt;/strong&gt;中，并回复 client。随后，leader 还要告诉其他 follower 也把刚才的指令写入状态机中；如果 leader 得不到部分成员的通过，他是不会将指令加入状态机的，也就是说这条指令没有大部分成员的通过，是不会最终执行的。&lt;/p&gt;
+
+&lt;h2 id=&#34;课程问题&#34;&gt;课程问题&lt;/h2&gt;
+
+&lt;h4 id=&#34;when-does-raft-start-a-leader-election&#34;&gt;When does Raft start a leader election?&lt;/h4&gt;
+
+&lt;ol&gt;
+&lt;li&gt;如果 follower 在election timeout 时间内没有收到 heartbeat，那么他就会变成 candidate，并发起选举。&lt;/li&gt;
+&lt;li&gt;如果candidate 发出选举请求后，在限定投票时间内没收到足够多的票数，他会再次发起选举。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&#34;how-to-ensure-at-most-one-leader-in-a-term&#34;&gt;How to ensure at most one leader in a term?&lt;/h4&gt;
+
+&lt;p&gt;前提：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;只有得到大部分成员（majority）的票数才能成为leader。&lt;/li&gt;
+&lt;li&gt;每个 follower 在每个 term 期间只能投一次票。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;所以，在每个 term 期间，最多只有一个 leader 可以得到大部分成员的票数。&lt;/p&gt;
+
+&lt;h4 id=&#34;how-does-a-server-know-that-election-succeeded&#34;&gt;How does a server know that election succeeded?&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Candidate 获取 majority 票数时，他就知道自己获胜了。&lt;/li&gt;
+&lt;li&gt;Follower 收到 AppendEntries 心跳时，他就知道新 leader 产生了。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;an-election-may-not-succeed&#34;&gt;An election may not succeed？&lt;/h4&gt;
+
+&lt;p&gt;如果有&lt;strong&gt;大于3个&lt;/strong&gt; candidate 同时发起选举，那么是不可能产生 leader 的。不过这种情况出现的概率实在是太低啦！因为Raft 的超时时间是随机产生的，产生三个相同的随机数，你说概率低不低？&lt;/p&gt;
+
+&lt;h4 id=&#34;what-happens-after-a-failed-election&#34;&gt;What happens after a failed election?&lt;/h4&gt;
+
+&lt;p&gt;重新选呗！等待另一个 follower 超时，currentTerm ++，变成 candidate。currentTerm 越大则越新，老的 candidate 会被淘汰（不选他）。&lt;/p&gt;
+
+&lt;h4 id=&#34;how-does-raft-reduce-chances-of-election-failure-due-to-split-vote&#34;&gt;How does Raft reduce chances of election failure due to split vote?&lt;/h4&gt;
+
+&lt;p&gt;正如上面所说，Raft 的超时时间是&lt;strong&gt;随机&lt;/strong&gt;产生的，所以多个 candidate 同时超时然后发起选举的概率是非常低的。还有，根据论文&lt;strong&gt;5.6小节&lt;/strong&gt;，时间上还要满足下面这个时间条件：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;broadcastTime ≪ electionTimeout ≪ MTBF&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;广播时间必须远远小于选举超时，否则如果两个超时随机数比较接近也不行，容易出现二次选举（前一次没完成，第二个超时又产生了）。&lt;/p&gt;
+
+&lt;h4 id=&#34;how-to-choose-the-random-delay-range&#34;&gt;How to choose the random delay range?&lt;/h4&gt;
+
+&lt;p&gt;太短：容易产生二次选举（如上所述，前一次选举没完成，第二个超时又来了）。&lt;/p&gt;
+
+&lt;p&gt;太长：等待时间太长，浪费了，效率低。&lt;/p&gt;
+
+&lt;h4 id=&#34;what-if-old-leader-isn-t-aware-a-new-one-is-elected&#34;&gt;What if old leader isn&amp;rsquo;t aware a new one is elected?&lt;/h4&gt;
+
+&lt;p&gt;就算老 Leader 不知道新 leader 已经被选，也不影响大局。因为 majority 已经选择了新 leader，老leader 已被抛弃。即使老leader继续发 AppendEntries，也只有 minority 会回复ok，majority 是会拒绝他的，也就是说他的 log 不会写入状态机。&lt;/p&gt;
+
+&lt;p&gt;内部分歧，但不会造成&amp;raquo;人格分裂“。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;下面谈谈在出现错误之后，如何同步日志&lt;/p&gt;
+
+&lt;h4 id=&#34;what-do-we-want-to-ensure&#34;&gt;What do we want to ensure?&lt;/h4&gt;
+
+&lt;p&gt;我们希望每个server 执行的命令都相同，顺序相同，也即他们的状态是一致的。详见论文Fig.3&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;State Machine Safety&lt;/strong&gt;: if a server has applied a log entry at a given index to its state machine, no other server will ever apply a different log entry for the same index.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&#34;how-can-logs-disagree&#34;&gt;How can logs disagree?&lt;/h4&gt;
+
+&lt;p&gt;日志不同的情况有两种：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;缺失。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;s0: 3&lt;/p&gt;
+
+&lt;p&gt;s1: 3, 3, 3&lt;/p&gt;
+
+&lt;p&gt;s2: 3, 3, 3&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;错乱。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;s0: 3&lt;/p&gt;
+
+&lt;p&gt;s1: 3, 3, 4&lt;/p&gt;
+
+&lt;p&gt;s2: 3, 3, 5&lt;/p&gt;
+
+&lt;h4 id=&#34;new-leader-will-force-its-log-on-followers&#34;&gt;New leader will force its log on followers&lt;/h4&gt;
+
+&lt;p&gt;New leader 会先找到跟 followers 匹配的logs，然后将后面不匹配的全部删掉，并将logs补齐。&lt;/p&gt;
+
+&lt;h4 id=&#34;could-new-leader-roll-back-executed-entries-from-end-of-previous-term&#34;&gt;Could new leader roll back &lt;em&gt;executed&lt;/em&gt; entries from end of previous term?&lt;/h4&gt;
+
+&lt;p&gt;不可以，一旦执行是不能撤销的！否则将违反状态机安全性原则(state machine safty）。Raft 为了保证这一点，选举的新 leader 的日志里必须包含全部已经提交的记录（entries）。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Raft uses the voting process to prevent a candidate fromwinning an election unless its log contains all committedentries.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&#34;could-we-choose-leader-with-longest-log&#34;&gt;Could we choose leader with longest log?&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;  example:
+    S1: 5 6 7
+    S2: 5 8
+    S3: 5 8
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;即使 S1 有最长的日志，但他是不可能被选中的，因为他还停留在 term 7。而 S2 和 S3 已经到 term 8 了。所以，新 leader 只会在 S2和 S3中产生，选择包含最长日志的 candidate 是不科学的。&lt;/p&gt;
+
+&lt;h4 id=&#34;please-explained-at-least-as-up-to-date-voting-rules&#34;&gt;Please explained ”&lt;em&gt;At least as up to date&lt;/em&gt;&amp;raquo; voting rules?&lt;/h4&gt;
+
+&lt;ol&gt;
+&lt;li&gt;优先选择有最新的日期（terms）候选者。&lt;/li&gt;
+&lt;li&gt;如果记录中最新的terms 都相同，则优先选择日志长的候选者。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;If the logs have last entries with different terms, thenthe log with the later term is more up-to-date.&lt;/p&gt;
+
+&lt;p&gt;If the logs end with the same term, then whichever log is longer ismore up-to-date.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;下面谈谈配置更改的问题&lt;/p&gt;
+
+&lt;h4 id=&#34;why-doesn-t-a-straightforward-approach-work&#34;&gt;Why doesn&amp;rsquo;t a straightforward approach work?&lt;/h4&gt;
+
+&lt;p&gt;下面这张图表示增加两个servers：S4, S5。也就是从3节点 -&amp;gt; 5节点。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://www.example.com/img/raft-reconfiguration.png&#34; alt=&#34;raft-reconfiguration&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;由于收到新配置的时间不同，会出现下面这个时刻：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;S1, S2 用旧配置（3个节点），那么，S1 可能会被选为leader（只需要S1,S2同意）；&lt;/li&gt;
+&lt;li&gt;S3, S4, S5 使用新配置（5个节点），那么，S5 可能会被选为leader（只需要S3,S4,S5同意）。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;结果可能导致这个时刻出现两个 leader，显然，大脑分裂了！&lt;/p&gt;
+
+&lt;h4 id=&#34;raft-configuration-change-how&#34;&gt;Raft configuration change. How?&lt;/h4&gt;
+
+&lt;p&gt;思路：增加一个过渡阶段 “joint consensus”，同时包含旧配置$C_{old}$和新配置$C_{new}$（过渡配置：$C_{old,new}$）。&lt;/p&gt;
+
+&lt;p&gt;步骤：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Leader 收到更改配置请求后，将$C_{old,new}$弄成一条日志记录（log entry），然后同步它。&lt;/li&gt;
+&lt;li&gt;一旦$C_{old,new}$被提交，$C_{old}$就不再使用了，当然，$C_{new}$也不会使用。这保证了过渡时期的安全。随后，$C_{new}$会被发送。&lt;/li&gt;
+&lt;li&gt;$C_{new}$被提交后，配置就更改成功了。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;容错：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;如果发生崩溃，而新leader 还没收到 $C_{old,new}$，那么他会继续使用$C_{old}$，并没什么影响。&lt;/li&gt;
+&lt;li&gt;如果崩溃后新选举的leader 已经有$C_{old,new}$记录了，那么他会继续完成配置更改。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;疑问&#34;&gt;疑问&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;以前听云计算课程，一般replica 的数目为&lt;strong&gt;3&lt;/strong&gt;个或&lt;strong&gt;5&lt;/strong&gt;个。而在Raft中，一个cluster 是没有限定数目的，如果我的集群有100台集群，岂不是有100个replicas？这不科学吧，太浪费了。再说，如果面对超大规模的文件，如何处理？&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;​My answer: Raft 是一致性协议，是为了使所有机器的操作保持一致，而不是用于备份文件。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Example</title>
+      <link>http://www.example.com/2016/07/08/example/</link>
+      <pubDate>Fri, 08 Jul 2016 09:45:19 +0800</pubDate>
+      <author>yourname@example.com (骚铭)</author>
+      <guid>http://www.example.com/2016/07/08/example/</guid>
+      <description>&lt;p&gt;$ E=mc^2 $&lt;/p&gt;
+
+&lt;p&gt;\( E = mC^2 \)&lt;/p&gt;
+
+&lt;p&gt;[ E_{v} = mc^2 ]
+[ C_1 = a_{v} + b ]&lt;/p&gt;
+
+&lt;p&gt;$$ C_1 = a_{v} + b $$&lt;/p&gt;
+
+&lt;div&gt;$$ C_1 = a_{v} + b $$&lt;/div&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

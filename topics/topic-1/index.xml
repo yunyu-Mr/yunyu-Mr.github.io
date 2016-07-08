@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Topic 1 on 骚铭科技的博客（建设中）</title>
+    <link>http://www.example.com/topics/topic-1/</link>
+    <description>Recent content in Topic 1 on 骚铭科技的博客（建设中）</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-EN</language>
+    <managingEditor>yourname@example.com (骚铭)</managingEditor>
+    <webMaster>yourname@example.com (骚铭)</webMaster>
+    <copyright>(c) 2016 骚铭科技 SM-Tech!.</copyright>
+    <lastBuildDate>Fri, 08 Jul 2016 09:45:19 +0800</lastBuildDate>
+    <atom:link href="http://www.example.com/topics/topic-1/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Example</title>
+      <link>http://www.example.com/2016/07/08/example/</link>
+      <pubDate>Fri, 08 Jul 2016 09:45:19 +0800</pubDate>
+      <author>yourname@example.com (骚铭)</author>
+      <guid>http://www.example.com/2016/07/08/example/</guid>
+      <description>&lt;p&gt;$ E=mc^2 $&lt;/p&gt;
+
+&lt;p&gt;\( E = mC^2 \)&lt;/p&gt;
+
+&lt;p&gt;[ E_{v} = mc^2 ]
+[ C_1 = a_{v} + b ]&lt;/p&gt;
+
+&lt;p&gt;$$ C_1 = a_{v} + b $$&lt;/p&gt;
+
+&lt;div&gt;$$ C_1 = a_{v} + b $$&lt;/div&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
