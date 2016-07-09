@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Mit6.824 on 骚铭科技的博客（建设中）</title>
+    <link>http://yunyu-mr.github.io/tags/mit6/index.824/</link>
+    <description>Recent content in Mit6.824 on 骚铭科技的博客（建设中）</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-EN</language>
+    <managingEditor>yourname@example.com (骚铭)</managingEditor>
+    <webMaster>yourname@example.com (骚铭)</webMaster>
+    <copyright>&lt;i class=&#39;fa fa-copyright&#39;&gt;&lt;/i&gt; 2016 &lt;i class=&#39;fa fa-mars&#39;&gt;&lt;/i&gt;骚铭科技 SM-Tech!</copyright>
+    <lastBuildDate>Sat, 09 Jul 2016 16:26:29 +0800</lastBuildDate>
+    <atom:link href="http://yunyu-mr.github.io/tags/mit6.824/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>(MIT 6.824 Distributed System) Google File System</title>
+      <link>http://yunyu-mr.github.io/cloud/gfs/</link>
+      <pubDate>Sat, 09 Jul 2016 16:26:29 +0800</pubDate>
+      <author>yourname@example.com (骚铭)</author>
+      <guid>http://yunyu-mr.github.io/cloud/gfs/</guid>
+      <description>
+
+&lt;h1 id=&#34;google-file-system-gfs:ae09b45d9caec0f3c7195ad9c5fb36f3&#34;&gt;Google File System (GFS)&lt;/h1&gt;
+
+&lt;p&gt;&lt;strong&gt;主题：性能、容错、一致性&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;参考论文：&lt;a href=&#34;http://nil.csail.mit.edu/6.824/2016/papers/gfs.pdf&#34;&gt;http://nil.csail.mit.edu/6.824/2016/papers/gfs.pdf&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;什么是一致性-consistency:ae09b45d9caec0f3c7195ad9c5fb36f3&#34;&gt;什么是一致性（consistency）？&lt;/h2&gt;
+
+&lt;p&gt;当data是&lt;strong&gt;多副本的&lt;/strong&gt;和&lt;strong&gt;并发读写的&lt;/strong&gt;的时候，保持数据的一致性是非常重要的。&lt;/p&gt;
+
+&lt;p&gt;弱一致性：read() 可能返回过期的数据（stale data）——不一定是最新的数据。&lt;/p&gt;
+
+&lt;p&gt;强一致性：read() 返回最近一次 write() 的数据。&lt;/p&gt;
+
+&lt;p&gt;权衡：strong consistency is good for applications&amp;rsquo; writers; but is bad for performence.&lt;/p&gt;
+
+&lt;h2 id=&#34;理想的一致性模型:ae09b45d9caec0f3c7195ad9c5fb36f3&#34;&gt;理想的一致性模型&lt;/h2&gt;
+
+&lt;p&gt;多副本文件系统表现得就像无副本文件系统一样（表现得就像：多用户access 同一台机器上的单个磁盘）。&lt;/p&gt;
+
+&lt;p&gt;我们的目标就是要实现这种透明性。&lt;/p&gt;
+
+&lt;h2 id=&#34;造成不一致的根源:ae09b45d9caec0f3c7195ad9c5fb36f3&#34;&gt;造成不一致的根源&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;并发（concurrency）&lt;/li&gt;
+&lt;li&gt;错误（failure）&lt;/li&gt;
+&lt;li&gt;网络分割（network partition）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;gfs-的目标:ae09b45d9caec0f3c7195ad9c5fb36f3&#34;&gt;GFS 的目标？&lt;/h2&gt;
+
+&lt;p&gt;创造一种基于集群的共享文件系统，存储超大规模数据集。（基于常用的Linux服务器集群，而不是大型机或超算）。&lt;/p&gt;
+
+&lt;h2 id=&#34;gfs中的文件有什么性质:ae09b45d9caec0f3c7195ad9c5fb36f3&#34;&gt;GFS中的文件有什么性质？&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;数据集很&lt;strong&gt;大&lt;/strong&gt;（multi TB)&lt;/li&gt;
+&lt;li&gt;系统中有不少&lt;strong&gt;大文件&lt;/strong&gt;（几百M甚至几个GB）&lt;/li&gt;
+&lt;li&gt;append-only（many large, sequential writes that append to data files)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;主要的挑战:ae09b45d9caec0f3c7195ad9c5fb36f3&#34;&gt;主要的挑战？&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;当集群规模很大时，机器崩溃(failures)变得十分频繁&lt;/li&gt;
+&lt;li&gt;做到高性能：大量的并发读写&lt;/li&gt;
+&lt;li&gt;如何提高网络利用率&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;顶层设计:ae09b45d9caec0f3c7195ad9c5fb36f3&#34;&gt;顶层设计&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;为什么采用三个副本？&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;提高可用性(availability)&lt;/li&gt;
+&lt;li&gt;负载均衡（如果数据经常被读，多副本可以均衡负载）&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;为什么不用RAID磁盘阵列？&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;RAID并不是一般常用品。而且我们要使得机器具有容错性，而不仅仅是存储设备。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;为什么 chunks 设计得这么大？&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;减少clients 与 master 的交互次数。&lt;/li&gt;
+&lt;li&gt;保持更长时间的TCP连接，减少网络开销。&lt;/li&gt;
+&lt;li&gt;减少master 存储元数据（metadata）的空间。&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;master-如何做到容错:ae09b45d9caec0f3c7195ad9c5fb36f3&#34;&gt;Master 如何做到容错？&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;单一Master （论文2.4）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;client 总是要跟 master 联系，这种中心化管理可以避免很多问题。master 可以将 client 的操作 log 下来，有利于恢复。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;持续性地(&lt;strong&gt;persistently&lt;/strong&gt;) 存储&lt;strong&gt;有限&lt;/strong&gt;的信息（论文2.6 metadata）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;GFS的master 只存储最基本的文件和目录的元数据，可以有限做到分离。持续性地存储下面两类元数据：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;the file and chunk &lt;strong&gt;namespace&lt;/strong&gt; (目录)&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;file-to-chunk mapping&lt;/strong&gt;（文件到块的映射）&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;对上面两类数据的修改操作打&lt;strong&gt;log&lt;/strong&gt; （operation log）&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;log 要备份到多台远程机器上。&lt;/li&gt;
+&lt;li&gt;仅当 log 顺利记录到本地和远程磁盘上后，才会回复client。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;限制 log 的大小&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;定期建立 checkpoint，在检查点之前的旧日志会全部被删除。日志尽可能小，可以加快崩溃后的恢复速度。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;恢复&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;首先将所有操作跑一遍（从上次检查点开始），恢复目录和映射。（replay operation logs after checkpoint）&lt;/li&gt;
+&lt;li&gt;然后轮询chunkservers, 将chunk的位置信息恢复。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;影子master （shadow master）（论文5.1.3）&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;master 除了有多个镜像外，还有&lt;strong&gt;影子&lt;/strong&gt;。影子跟镜像方式不太一样，影子是紧跟主master的步伐，慢一点，所以不完全相同，没那么新鲜；而镜像之间应该是完全相同的。影子可以提供“只读”服务，为master分担一些工作量，只是data没那么新鲜罢了。&lt;/p&gt;
+
+&lt;h2 id=&#34;chunk-容错:ae09b45d9caec0f3c7195ad9c5fb36f3&#34;&gt;Chunk 容错&lt;/h2&gt;
+
+&lt;p&gt;对chunk最多的操作是&lt;strong&gt;修改（mutation）&lt;/strong&gt;，那么如何避免在修改过程中的错误呢？&lt;/p&gt;
+
+&lt;p&gt;GFS中主要采用&lt;strong&gt;租约机制&lt;/strong&gt;（lease，见论文3.1节）：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;首先client 会询问 master 哪个 chunk 握有当前租约（如果没有，就分配租约给其中一个副本），该chunk 就作为主chunk（primary）。&lt;/li&gt;
+&lt;li&gt;client 将数据 push 到所有的副本中。注意，push 的过程是按照&lt;strong&gt;网络拓扑&lt;/strong&gt;传输的，而不是先传给primary再给secondary，这么做是为了以最快的速度将数据push到所有的副本中（最快速度拷贝）。&lt;/li&gt;
+&lt;li&gt;当所有replicas 都接收完数据，client 就会向 primary 发出写入请求。
+
+&lt;ul&gt;
+&lt;li&gt;primary 为所有修改操作分配连续的序号（因为修改操作可能来自多个clients，所以必须保证执行顺序）&lt;/li&gt;
+&lt;li&gt;primary 按照序号的顺序，对本地数据执行修改操作&lt;/li&gt;
+&lt;li&gt;primary 将请求转发给其他的 replicas&lt;/li&gt;
+&lt;li&gt;primary 收到所有 replicas 的回复后，才响应client，完成修改。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;如果其中一个副本没有响应或修改失败，client 就会&lt;strong&gt;重试&lt;/strong&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;除了上述的租约机制，master 还会执行re-replication 和 rebalance （见论文4.3节）：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;当某个chunk 副本的数目低于设定值（默认为3），master 就会尽快对该chunk 进行再备份（re-replication）。&lt;/li&gt;
+&lt;li&gt;master 还会根据 chunk 的访问情况对其副本进行&lt;strong&gt;负载均衡&lt;/strong&gt;，这是为了使磁盘利用率更为平均，提升性能。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;chunks-的一致性:ae09b45d9caec0f3c7195ad9c5fb36f3&#34;&gt;Chunks 的一致性&lt;/h2&gt;
+
+&lt;p&gt;GFS 如何保证所有chunks都是一致的呢？（见论文2.7.1节，4.5节）&lt;/p&gt;
+
+&lt;p&gt;GFS 使用 chunk 版本号（chunk version number）来检测chunk 是否新鲜（stale）。&lt;/p&gt;
+
+&lt;p&gt;当master分配一个租约给某个chunk时，它会增加版本号并通知所有的副本。master 和 chunkservers 都持续性地存储这个版本号。那么 master 如何检测到 chunk 是不新鲜的呢？一旦chunkserver崩溃重启，它会向master 汇报它的chunks的版本号。如果master 发现其中某个chunk的版本号比自己存储的版本号小，那么这个chunk肯定是不新鲜了。&lt;/p&gt;
+
+&lt;p&gt;版本号还会发给client，使client也可以检测数据是否新鲜。&lt;/p&gt;
+
+&lt;h2 id=&#34;并发-写入-追加-见论文3-3:ae09b45d9caec0f3c7195ad9c5fb36f3&#34;&gt;并发 写入/追加（见论文3.3）&lt;/h2&gt;
+
+&lt;p&gt;在传统的“写入”中，通过偏移量offset 就可对数据进行随机读写。而在&lt;strong&gt;并发&lt;/strong&gt;情况下，常常会有&lt;strong&gt;多个client并发地&lt;/strong&gt;在&lt;strong&gt;不同机器&lt;/strong&gt;上对&lt;strong&gt;同一个文件&lt;/strong&gt;进行写入操作（例如，log 文件）。显然，传统的随机写入并不适合并发环境，因为要搞好竞争关系往往要引入复杂的&lt;strong&gt;锁&lt;/strong&gt;机制，会严重降低分布式系统的读写性能。所以，在GFS中，采用&lt;strong&gt;追加&lt;/strong&gt;的方式修改文件。&lt;/p&gt;
+
+&lt;p&gt;GFS提供一种称为&lt;strong&gt;记录追加(record append)&lt;/strong&gt;的原子操作。此操作保证&lt;strong&gt;至少一次追加（at least once）&lt;/strong&gt;。为什么是至少一次呢？且看记录是如何追加的：&lt;/p&gt;
+
+&lt;p&gt;追加也是一种修改，所以跟上述GFS的修改方式一样，必须要所有replicas都追加了，才算成功。只要有一个replica追加失败，client 就会&lt;strong&gt;重试&lt;/strong&gt;。可见，虽然某些replicas已经成功追加，但client的重试使得他们只得再加一次。所以，某些记录可能会被追加多次，但至少有一次。&lt;/p&gt;
+
+&lt;h2 id=&#34;小结:ae09b45d9caec0f3c7195ad9c5fb36f3&#34;&gt;小结&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;GFS 中使用的重要容错技术：
+
+&lt;ul&gt;
+&lt;li&gt;日志和检查点（logging &amp;amp; checkpointing）&lt;/li&gt;
+&lt;li&gt;chunk 采用&lt;strong&gt;主/备份&lt;/strong&gt;副本存储&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;GFS适合于什么？长处？
+
+&lt;ul&gt;
+&lt;li&gt;大规模&lt;strong&gt;连续&lt;/strong&gt;地读写&lt;/li&gt;
+&lt;li&gt;追加（append）&lt;/li&gt;
+&lt;li&gt;大吞吐量(三个副本供同时读取，并且将clients的读取&lt;strong&gt;聚合&lt;/strong&gt;起来，使得网络接近&lt;strong&gt;饱和&lt;/strong&gt;状态)&lt;/li&gt;
+&lt;li&gt;数据容错性好（三个以上副本）&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;不足：
+
+&lt;ul&gt;
+&lt;li&gt;管理采用集中化模式（单master），master容错性能不够好。&lt;/li&gt;
+&lt;li&gt;小文件（master是瓶颈，若clients大量读取小文件，每次都要先请求master，那么master的工作量就会激增）&lt;/li&gt;
+&lt;li&gt;对于并发的文件更新还不够好（除了append）&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

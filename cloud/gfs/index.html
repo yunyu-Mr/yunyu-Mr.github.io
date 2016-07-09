@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]> <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]> <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>(MIT 6.824 Distributed System) Google File System  &middot; 骚铭科技的博客（建设中）</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+<meta name="description" content="" />
+
+<meta name="keywords" content="分布式系统, MIT6.824, ">
+
+
+<meta property="og:title" content="(MIT 6.824 Distributed System) Google File System  &middot; 骚铭科技的博客（建设中） ">
+<meta property="og:site_name" content="骚铭科技的博客（建设中）"/>
+<meta property="og:url" content="http://yunyu-mr.github.io/cloud/gfs/" />
+<meta property="og:locale" content="en-EN">
+
+
+<meta property="og:type" content="article" />
+<meta property="og:description" content=""/>
+<meta property="og:article:published_time" content="2016-07-09T16:26:29&#43;08:00" />
+<meta property="og:article:modified_time" content="2016-07-09T16:26:29&#43;08:00" />
+
+  
+    
+<meta property="og:article:tag" content="分布式系统">
+    
+<meta property="og:article:tag" content="MIT6.824">
+    
+  
+
+  
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "headline": "(MIT 6.824 Distributed System) Google File System",
+    "author": {
+      "@type": "Person",
+      "name": "http://profiles.google.com/+?rel=author"
+    },
+    "datePublished": "2016-07-09",
+    "description": "",
+    "wordCount":  221 
+  }
+</script>
+
+
+
+<link rel="canonical" href="http://yunyu-mr.github.io/cloud/gfs/" />
+
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://yunyu-mr.github.io/touch-icon-144-precomposed.png">
+<link href="http://yunyu-mr.github.io/favicon.png" rel="icon">
+<meta name="theme-color" content="#2053AB">
+<meta name="generator" content="Hugo 0.15" />
+
+  <!--[if lt IE 9]>
+<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
+
+<link href='https://fonts.googleapis.com/css?family=Merriweather:300%7CRaleway%7COpen+Sans' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="http://yunyu-mr.github.io/css/font-awesome.min.css">
+<link rel="stylesheet" href="http://yunyu-mr.github.io/css/style.css">
+<link rel="stylesheet" href="http://yunyu-mr.github.io/css/highlight/default.css">
+
+  
+</head>
+<body>
+  <main id="main-wrapper" class="container main_wrapper has-sidebar">
+    <header id="main-header" class="container main_header">
+  <div id="profile">
+<a class="baselink" href="http://yunyu-mr.github.io/">
+	<div class="portrait" itemprop="image" style="background-image: url('http://yunyu-mr.github.io/img/smtech.jpeg');"></div>
+	</div>
+</a>
+<br>
+
+<div class="container brand">
+  <div class="container title h1-like">
+  <a class="baselink" href="http://yunyu-mr.github.io/">
+  <i class='fa fa-mars'></i>骚铭科技
+
+</a>
+
+</div>
+
+  
+<div class="container topline">
+  
+  交流交流，学习学习
+
+
+</div>
+
+
+</div>
+  <nav class="container nav primary no-print">
+  
+
+<a class="homelink" href="http://yunyu-mr.github.io/">Home</a>
+
+
+  
+<a href="http://yunyu-mr.github.io/about">关于</a>
+
+<a href="http://yunyu-mr.github.io/cloud" title="学术">学术</a>
+
+<a href="http://yunyu-mr.github.io/post" title="文章列表">文章</a>
+
+<a href="http://yunyu-mr.github.io/topics" title="Show list of topics">分类</a>
+
+
+</nav>
+
+<div class="container nav secondary no-print">
+  
+<a id="contact-link-email" class="contact_link" href="mailto:yourname@example.com">
+  <span class="fa fa-envelope-square"></span><span>email</span></a>
+
+
+
+<a id="contact-link-github" class="contact_link" href="https://github.com/yunyu-Mr">
+  <span class="fa fa-github-square"></span><span>github</span></a>
+
+
+
+
+
+<a id="contact-link-linkedin" class="contact_link" href="https://www.linkedin.com/in/%e5%ae%b6%e9%93%ad-%e5%bc%a0-3354a197">
+  <span class="fa fa-linkedin-square"></span><span>linkedin</span></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+
+  
+
+</header>
+
+
+<article id="main-content" class="container main_content single">
+  <header class="container hat">
+  <h1>(MIT 6.824 Distributed System) Google File System
+</h1>
+
+  <div class="metas">
+<time datetime="2016-07-09">9 Jul, 2016</time>
+
+
+  
+    &middot; by author
+  
+  &middot; Read in about 2 min
+  &middot; (221 Words)
+  <br>
+  
+<a class="label" href="http://yunyu-mr.github.io/tags/mit6.824">MIT6.824</a>
+
+<a class="label" href="http://yunyu-mr.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F">分布式系统</a>
+
+
+
+</div>
+
+</header>
+
+  <div class="container content">
+  
+
+<h1 id="google-file-system-gfs:ae09b45d9caec0f3c7195ad9c5fb36f3">Google File System (GFS)</h1>
+
+<p><strong>主题：性能、容错、一致性</strong></p>
+
+<p>参考论文：<a href="http://nil.csail.mit.edu/6.824/2016/papers/gfs.pdf">http://nil.csail.mit.edu/6.824/2016/papers/gfs.pdf</a></p>
+
+<h2 id="什么是一致性-consistency:ae09b45d9caec0f3c7195ad9c5fb36f3">什么是一致性（consistency）？</h2>
+
+<p>当data是<strong>多副本的</strong>和<strong>并发读写的</strong>的时候，保持数据的一致性是非常重要的。</p>
+
+<p>弱一致性：read() 可能返回过期的数据（stale data）——不一定是最新的数据。</p>
+
+<p>强一致性：read() 返回最近一次 write() 的数据。</p>
+
+<p>权衡：strong consistency is good for applications&rsquo; writers; but is bad for performence.</p>
+
+<h2 id="理想的一致性模型:ae09b45d9caec0f3c7195ad9c5fb36f3">理想的一致性模型</h2>
+
+<p>多副本文件系统表现得就像无副本文件系统一样（表现得就像：多用户access 同一台机器上的单个磁盘）。</p>
+
+<p>我们的目标就是要实现这种透明性。</p>
+
+<h2 id="造成不一致的根源:ae09b45d9caec0f3c7195ad9c5fb36f3">造成不一致的根源</h2>
+
+<ul>
+<li>并发（concurrency）</li>
+<li>错误（failure）</li>
+<li>网络分割（network partition）</li>
+</ul>
+
+<h2 id="gfs-的目标:ae09b45d9caec0f3c7195ad9c5fb36f3">GFS 的目标？</h2>
+
+<p>创造一种基于集群的共享文件系统，存储超大规模数据集。（基于常用的Linux服务器集群，而不是大型机或超算）。</p>
+
+<h2 id="gfs中的文件有什么性质:ae09b45d9caec0f3c7195ad9c5fb36f3">GFS中的文件有什么性质？</h2>
+
+<ul>
+<li>数据集很<strong>大</strong>（multi TB)</li>
+<li>系统中有不少<strong>大文件</strong>（几百M甚至几个GB）</li>
+<li>append-only（many large, sequential writes that append to data files)</li>
+</ul>
+
+<h2 id="主要的挑战:ae09b45d9caec0f3c7195ad9c5fb36f3">主要的挑战？</h2>
+
+<ul>
+<li>当集群规模很大时，机器崩溃(failures)变得十分频繁</li>
+<li>做到高性能：大量的并发读写</li>
+<li>如何提高网络利用率</li>
+</ul>
+
+<h2 id="顶层设计:ae09b45d9caec0f3c7195ad9c5fb36f3">顶层设计</h2>
+
+<ol>
+<li><p>为什么采用三个副本？</p>
+
+<ul>
+<li>提高可用性(availability)</li>
+<li>负载均衡（如果数据经常被读，多副本可以均衡负载）</li>
+</ul></li>
+
+<li><p>为什么不用RAID磁盘阵列？</p></li>
+</ol>
+
+<p>RAID并不是一般常用品。而且我们要使得机器具有容错性，而不仅仅是存储设备。</p>
+
+<ol>
+<li><p>为什么 chunks 设计得这么大？</p>
+
+<ol>
+<li>减少clients 与 master 的交互次数。</li>
+<li>保持更长时间的TCP连接，减少网络开销。</li>
+<li>减少master 存储元数据（metadata）的空间。</li>
+</ol></li>
+</ol>
+
+<h2 id="master-如何做到容错:ae09b45d9caec0f3c7195ad9c5fb36f3">Master 如何做到容错？</h2>
+
+<ul>
+<li>单一Master （论文2.4）</li>
+</ul>
+
+<p>client 总是要跟 master 联系，这种中心化管理可以避免很多问题。master 可以将 client 的操作 log 下来，有利于恢复。</p>
+
+<ul>
+<li>持续性地(<strong>persistently</strong>) 存储<strong>有限</strong>的信息（论文2.6 metadata）</li>
+</ul>
+
+<p>GFS的master 只存储最基本的文件和目录的元数据，可以有限做到分离。持续性地存储下面两类元数据：</p>
+
+<ul>
+<li>the file and chunk <strong>namespace</strong> (目录)</li>
+
+<li><p><strong>file-to-chunk mapping</strong>（文件到块的映射）</p></li>
+
+<li><p>对上面两类数据的修改操作打<strong>log</strong> （operation log）</p>
+
+<ul>
+<li>log 要备份到多台远程机器上。</li>
+<li>仅当 log 顺利记录到本地和远程磁盘上后，才会回复client。</li>
+</ul></li>
+
+<li><p>限制 log 的大小</p>
+
+<ul>
+<li>定期建立 checkpoint，在检查点之前的旧日志会全部被删除。日志尽可能小，可以加快崩溃后的恢复速度。</li>
+</ul></li>
+
+<li><p>恢复</p>
+
+<ul>
+<li>首先将所有操作跑一遍（从上次检查点开始），恢复目录和映射。（replay operation logs after checkpoint）</li>
+<li>然后轮询chunkservers, 将chunk的位置信息恢复。</li>
+</ul></li>
+
+<li><p>影子master （shadow master）（论文5.1.3）</p></li>
+</ul>
+
+<p>master 除了有多个镜像外，还有<strong>影子</strong>。影子跟镜像方式不太一样，影子是紧跟主master的步伐，慢一点，所以不完全相同，没那么新鲜；而镜像之间应该是完全相同的。影子可以提供“只读”服务，为master分担一些工作量，只是data没那么新鲜罢了。</p>
+
+<h2 id="chunk-容错:ae09b45d9caec0f3c7195ad9c5fb36f3">Chunk 容错</h2>
+
+<p>对chunk最多的操作是<strong>修改（mutation）</strong>，那么如何避免在修改过程中的错误呢？</p>
+
+<p>GFS中主要采用<strong>租约机制</strong>（lease，见论文3.1节）：</p>
+
+<ul>
+<li>首先client 会询问 master 哪个 chunk 握有当前租约（如果没有，就分配租约给其中一个副本），该chunk 就作为主chunk（primary）。</li>
+<li>client 将数据 push 到所有的副本中。注意，push 的过程是按照<strong>网络拓扑</strong>传输的，而不是先传给primary再给secondary，这么做是为了以最快的速度将数据push到所有的副本中（最快速度拷贝）。</li>
+<li>当所有replicas 都接收完数据，client 就会向 primary 发出写入请求。
+
+<ul>
+<li>primary 为所有修改操作分配连续的序号（因为修改操作可能来自多个clients，所以必须保证执行顺序）</li>
+<li>primary 按照序号的顺序，对本地数据执行修改操作</li>
+<li>primary 将请求转发给其他的 replicas</li>
+<li>primary 收到所有 replicas 的回复后，才响应client，完成修改。</li>
+</ul></li>
+<li>如果其中一个副本没有响应或修改失败，client 就会<strong>重试</strong>。</li>
+</ul>
+
+<p>除了上述的租约机制，master 还会执行re-replication 和 rebalance （见论文4.3节）：</p>
+
+<ul>
+<li>当某个chunk 副本的数目低于设定值（默认为3），master 就会尽快对该chunk 进行再备份（re-replication）。</li>
+<li>master 还会根据 chunk 的访问情况对其副本进行<strong>负载均衡</strong>，这是为了使磁盘利用率更为平均，提升性能。</li>
+</ul>
+
+<h2 id="chunks-的一致性:ae09b45d9caec0f3c7195ad9c5fb36f3">Chunks 的一致性</h2>
+
+<p>GFS 如何保证所有chunks都是一致的呢？（见论文2.7.1节，4.5节）</p>
+
+<p>GFS 使用 chunk 版本号（chunk version number）来检测chunk 是否新鲜（stale）。</p>
+
+<p>当master分配一个租约给某个chunk时，它会增加版本号并通知所有的副本。master 和 chunkservers 都持续性地存储这个版本号。那么 master 如何检测到 chunk 是不新鲜的呢？一旦chunkserver崩溃重启，它会向master 汇报它的chunks的版本号。如果master 发现其中某个chunk的版本号比自己存储的版本号小，那么这个chunk肯定是不新鲜了。</p>
+
+<p>版本号还会发给client，使client也可以检测数据是否新鲜。</p>
+
+<h2 id="并发-写入-追加-见论文3-3:ae09b45d9caec0f3c7195ad9c5fb36f3">并发 写入/追加（见论文3.3）</h2>
+
+<p>在传统的“写入”中，通过偏移量offset 就可对数据进行随机读写。而在<strong>并发</strong>情况下，常常会有<strong>多个client并发地</strong>在<strong>不同机器</strong>上对<strong>同一个文件</strong>进行写入操作（例如，log 文件）。显然，传统的随机写入并不适合并发环境，因为要搞好竞争关系往往要引入复杂的<strong>锁</strong>机制，会严重降低分布式系统的读写性能。所以，在GFS中，采用<strong>追加</strong>的方式修改文件。</p>
+
+<p>GFS提供一种称为<strong>记录追加(record append)</strong>的原子操作。此操作保证<strong>至少一次追加（at least once）</strong>。为什么是至少一次呢？且看记录是如何追加的：</p>
+
+<p>追加也是一种修改，所以跟上述GFS的修改方式一样，必须要所有replicas都追加了，才算成功。只要有一个replica追加失败，client 就会<strong>重试</strong>。可见，虽然某些replicas已经成功追加，但client的重试使得他们只得再加一次。所以，某些记录可能会被追加多次，但至少有一次。</p>
+
+<h2 id="小结:ae09b45d9caec0f3c7195ad9c5fb36f3">小结</h2>
+
+<ul>
+<li>GFS 中使用的重要容错技术：
+
+<ul>
+<li>日志和检查点（logging &amp; checkpointing）</li>
+<li>chunk 采用<strong>主/备份</strong>副本存储</li>
+</ul></li>
+<li>GFS适合于什么？长处？
+
+<ul>
+<li>大规模<strong>连续</strong>地读写</li>
+<li>追加（append）</li>
+<li>大吞吐量(三个副本供同时读取，并且将clients的读取<strong>聚合</strong>起来，使得网络接近<strong>饱和</strong>状态)</li>
+<li>数据容错性好（三个以上副本）</li>
+</ul></li>
+<li>不足：
+
+<ul>
+<li>管理采用集中化模式（单master），master容错性能不够好。</li>
+<li>小文件（master是瓶颈，若clients大量读取小文件，每次都要先请求master，那么master的工作量就会激增）</li>
+<li>对于并发的文件更新还不够好（除了append）</li>
+</ul></li>
+</ul>
+
+</div>
+
+
+  <footer class="container">
+  <div class="container navigation no-print">
+  <h2>Navigation</h2>
+  
+  
+
+    
+    <a class="prev" href="http://yunyu-mr.github.io/cloud/raft/" title="Raft -- Understandable Distributed Consensus">
+      Previous
+    </a>
+    
+
+    
+
+  
+
+
+</div>
+
+  <div class="container comments">
+  <h2>Comments</h2>
+  
+
+
+
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2106103"></script>
+
+
+</div>
+
+</footer>
+
+</article>
+      <footer id="main-footer" class="container main_footer">
+  
+
+  <div class="container nav foot no-print">
+  
+
+  <a class="toplink" href="#">back to top</a>
+
+</div>
+
+  <div class="container credits">
+  
+<div class="container footline">
+  
+  code with <i class='fa fa-heart'></i>
+
+
+</div>
+
+
+  
+<div class="container copyright">
+  
+  <i class='fa fa-copyright'></i> 2016 <i class='fa fa-mars'></i>骚铭科技 SM-Tech!
+
+
+</div>
+
+
+</div>
+
+</footer>
+
+    </main>
+    
+
+
+<script src="http://yunyu-mr.github.io/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+    
+    <script type="text/javascript" src="http://tajs.qq.com/stats?sId=57275597" charset="UTF-8"></script>
+  </body>
+</html>
+
+<script type="text/javascript"
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\[','\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    
+    
+    
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+});
+</script>

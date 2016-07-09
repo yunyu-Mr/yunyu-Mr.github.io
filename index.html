@@ -137,11 +137,40 @@
     <h1>骚铭科技的博客（建设中）
 </h1>
 
-    <span>last update: <time datetime="2016-07-08T15:55:20&#43;08:00">8 July at 3:55pm</time>
+    <span>last update: <time datetime="2016-07-09T16:26:29&#43;08:00">9 July at 4:26pm</time>
 </span>
 
   </header>
   
+  
+    <article class="container content summary">
+  <div class="container hat">
+  <h2><a href="http://yunyu-mr.github.io/cloud/gfs/">(MIT 6.824 Distributed System) Google File System
+</a>
+</h2>
+
+  <time datetime="2016-07-09">9 Jul, 2016</time>
+
+</div>
+
+  <p class="container content">
+  
+  
+    Google File System (GFS) 主题：性能、容错、一致性 参考论文：http://nil.csail.mit.edu/6.824/2016/papers/gfs.pdf 什么是一致性（consistency）？ 当data是多副本的和并发读写的的时候，保持数据的一致性是非常重要的。 弱一致性：read() 可能返回过期的数据（stale data）——不一定是最新的数据。 强一致性：read() 返回最近一次 write() 的数据。 权衡：strong consistency is good for applications&rsquo; writers; but is bad for performence. 理想的一致性模型 多副本文件系统表现得就像无副本文件系统一样（表现得就像：多用户access 同一台机器上的单个磁盘）。 我们的目标就是要实现这种透明性。 造成不一致的根源 并发（concurrency） 错误（failure） 网络分割（network partition） GFS 的目标？ 创造一种基于集群的共享文件系统，存储超大规模数据集。（基于常用的Linux服务器集群，而不是大型机或超算）。 GFS中的文件有什么性质？ 数据集很大（multi TB) 系统中有不少大文件（几百M甚至几个GB） append-only（many large, sequential writes that append to data files) 主要的挑战？ 当集群规模很大时，机器崩溃(failures)变得十分频繁 做到高性能：大量的并发读写 如何提高网络利用率 顶层设计 为什么采用三个副本？ 提高可用性(availability) 负载均衡（如果数据经常被读，多副本可以均衡负载） 为什么不用RAID磁盘阵列？ RAID并不是一般常用品。而且我们要使得机器具有容错性，而不仅仅是存储设备。 为什么 chunks 设计得这么大？ 减少clients 与 master 的交互次数。 保持更长时间的TCP连接，减少网络开销。
+  
+
+
+</p>
+
+
+  <div class="container readlink">
+  <a href="http://yunyu-mr.github.io/cloud/gfs/">Read more &rarr;</a>
+
+</div>
+
+
+</article>
+
   
     <article class="container content summary">
   <div class="container hat">
