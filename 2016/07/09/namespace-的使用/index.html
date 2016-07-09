@@ -5,32 +5,34 @@
 <!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
 <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <title>Example  &middot; 骚铭科技的博客（建设中）</title>
+  <title>namespace 的使用  &middot; 骚铭科技的博客（建设中）</title>
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="HandheldFriendly" content="True">
 <meta name="MobileOptimized" content="320">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-<meta name="description" content="example post" />
+<meta name="description" content="最近在看libzmq的源码，里面大量使用namespace。平时没怎么用过，故写一段测试代码作为笔记。我抽象了一个客厅类 `living_room_t`，里面有`chair_t` 和 `desk_t`。" />
 
-<meta name="keywords" content="example, ">
+<meta name="keywords" content="cpp, namespace, ">
 
 
-<meta property="og:title" content="Example  &middot; 骚铭科技的博客（建设中） ">
+<meta property="og:title" content="namespace 的使用  &middot; 骚铭科技的博客（建设中） ">
 <meta property="og:site_name" content="骚铭科技的博客（建设中）"/>
-<meta property="og:url" content="http://yunyu-mr.github.io/2016/07/08/example/" />
+<meta property="og:url" content="http://yunyu-mr.github.io/2016/07/09/namespace-%E7%9A%84%E4%BD%BF%E7%94%A8/" />
 <meta property="og:locale" content="en-EN">
 
 
 <meta property="og:type" content="article" />
-<meta property="og:description" content="example post"/>
-<meta property="og:article:published_time" content="2016-07-08T09:45:19&#43;08:00" />
-<meta property="og:article:modified_time" content="2016-07-08T09:45:19&#43;08:00" />
+<meta property="og:description" content="最近在看libzmq的源码，里面大量使用namespace。平时没怎么用过，故写一段测试代码作为笔记。我抽象了一个客厅类 `living_room_t`，里面有`chair_t` 和 `desk_t`。"/>
+<meta property="og:article:published_time" content="2016-07-09T16:37:09&#43;08:00" />
+<meta property="og:article:modified_time" content="2016-07-09T16:37:09&#43;08:00" />
 
   
     
-<meta property="og:article:tag" content="example">
+<meta property="og:article:tag" content="cpp">
+    
+<meta property="og:article:tag" content="namespace">
     
   
 
@@ -40,20 +42,20 @@
   {
     "@context": "http://schema.org",
     "@type": "Article",
-    "headline": "Example",
+    "headline": "namespace 的使用",
     "author": {
       "@type": "Person",
       "name": "http://profiles.google.com/+?rel=author"
     },
-    "datePublished": "2016-07-08",
-    "description": "example post",
-    "wordCount":  34 
+    "datePublished": "2016-07-09",
+    "description": "最近在看libzmq的源码，里面大量使用namespace。平时没怎么用过，故写一段测试代码作为笔记。我抽象了一个客厅类 `living_room_t`，里面有`chair_t` 和 `desk_t`。",
+    "wordCount":  183 
   }
 </script>
 
 
 
-<link rel="canonical" href="http://yunyu-mr.github.io/2016/07/08/example/" />
+<link rel="canonical" href="http://yunyu-mr.github.io/2016/07/09/namespace-%E7%9A%84%E4%BD%BF%E7%94%A8/" />
 
 <link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://yunyu-mr.github.io/touch-icon-144-precomposed.png">
 <link href="http://yunyu-mr.github.io/favicon.png" rel="icon">
@@ -158,21 +160,23 @@
 
 <article id="main-content" class="container main_content single">
   <header class="container hat">
-  <h1>Example
+  <h1>namespace 的使用
 </h1>
 
   <div class="metas">
-<time datetime="2016-07-08">8 Jul, 2016</time>
+<time datetime="2016-07-09">9 Jul, 2016</time>
 
 
   
     &middot; by author
   
   &middot; Read in about 1 min
-  &middot; (34 Words)
+  &middot; (183 Words)
   <br>
   
-<a class="label" href="http://yunyu-mr.github.io/tags/example">example</a>
+<a class="label" href="http://yunyu-mr.github.io/tags/cpp">cpp</a>
+
+<a class="label" href="http://yunyu-mr.github.io/tags/namespace">namespace</a>
 
 
 
@@ -181,16 +185,133 @@
 </header>
 
   <div class="container content">
-  <p>$ E=mc^2 $</p>
+  
 
-<p>\( E = mC^2 \)</p>
+<p>最近在看libzmq的源码，里面大量使用namespace。平时没怎么用过，故写一段测试代码作为笔记。</p>
 
-<p>[ E_{v} = mc^2 ]
-[ C_1 = a_{v} + b ]</p>
+<hr />
 
-<p>$$ C_1 = a_{v} + b $$</p>
+<p>我抽象了一个客厅类 <code>living_room_t</code>，里面有<code>chair_t</code> 和 <code>desk_t</code>。</p>
 
-<div>$$ C_1 = a_{v} + b $$</div>
+<h3 id="cmakelists">CMakeLists</h3>
+
+<pre><code>cmake_minimum_required(VERSION 3.3)
+project(namespace_test)
+
+set(SOURCE_FILES
+main.cpp
+living_room.hpp
+living_room.cpp
+chair.hpp
+chair.cpp
+desk.hpp
+desk.cpp)
+
+add_executable(home ${SOURCE_FILES})
+</code></pre>
+
+<h3 id="源码">源码</h3>
+
+<p>我使用的命名空间是<code>home</code>。<code>living_room_t</code>，<code>chair_t</code>和<code>desk_t</code>都属于同一个域*home*，但是属于不同的文件。有了共同的命名空间*home*，在<code>living_room.hpp</code>里头是不需要include <code>chair.hpp</code> 和 <code>desk.hpp</code> 的。不过，在<code>living_room.cpp</code>中是需要include <code>chair.hpp</code> 和 <code>desk.hpp</code>的。否则编译器就会报&raquo;allocation of incomplete type&raquo;的错误。</p>
+
+<p>注意到在living_room.hpp里面有两个类声明<code>class chair_t;</code>和<code>class desk_t;</code>，这样做的好处是后面的使用中不需要写<code>home::chair_t *chair;</code>，只需<code>chair_t *chair;</code>即可。</p>
+
+<p>好了，Talk is cheap, show me the code.</p>
+
+<p>头文件如下：</p>
+
+<pre><code>// living_room.hpp
+
+namespace home
+{
+    class chair_t;
+    class desk_t;
+    
+    class living_room_t
+    {
+        int id;
+        int size;
+        chair_t *chair;
+        desk_t *desk;
+        
+    public:
+        living_room_t(int id, int size = 10);            
+        ~living_room_t();
+        void prints();
+    };
+}
+</code></pre>
+
+<pre><code>// chair.hpp
+namespace home 
+{ 
+    class chair_t 
+    {
+        int id;
+            
+    public:
+        chair_t(int id):
+            id(id) 
+        {}
+        ~chair_t() {}
+    };
+}
+</code></pre>
+
+<pre><code>// desk.hpp
+namespace home
+{
+    class desk_t
+    {
+        int id;
+    public:
+        desk_t(int id):
+            id(id)
+        {}
+        ~desk_t() {}
+    };
+}
+</code></pre>
+
+<p>living_room的实现：</p>
+
+<pre><code>// living_room.cpp
+#include &lt;iostream&gt;
+#include &quot;living_room.hpp&quot;
+#include &quot;chair.hpp&quot;
+#include &quot;desk.hpp&quot;
+
+home::living_room_t::living_room_t (int id, int size):
+    id(id),
+    size(size) 
+{
+    chair = new chair_t (1);
+    desk = new desk_t (2);
+}
+
+home::living_room_t::~living_room_t() {
+    delete chair;
+    delete desk;
+}
+
+void home::living_room_t::prints()
+{
+    using namespace std;
+    cout &lt;&lt; &quot;This is living room &quot; &lt;&lt; id &lt;&lt; endl;
+}
+</code></pre>
+
+<p>最后，主函数如下：</p>
+
+<pre><code>#include &lt;iostream&gt;
+#include &quot;living_room.hpp&quot;
+
+int main() {
+    home::living_room_t living(1);
+    living.prints();
+    return 0;
+}
+</code></pre>
 
 </div>
 
@@ -202,11 +323,11 @@
   
 
     
-
-    
-    <a class="next" href="http://yunyu-mr.github.io/2016/07/09/namespace-%E7%9A%84%E4%BD%BF%E7%94%A8/" title="namespace 的使用">
-      Next
+    <a class="prev" href="http://yunyu-mr.github.io/2016/07/08/example/" title="Example">
+      Previous
     </a>
+    
+
     
 
   

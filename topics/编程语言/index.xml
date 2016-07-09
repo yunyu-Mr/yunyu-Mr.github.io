@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Posts on 骚铭科技的博客（建设中）</title>
-    <link>http://yunyu-mr.github.io/post/</link>
-    <description>Recent content in Posts on 骚铭科技的博客（建设中）</description>
+    <title>编程语言 on 骚铭科技的博客（建设中）</title>
+    <link>http://yunyu-mr.github.io/topics/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/</link>
+    <description>Recent content in 编程语言 on 骚铭科技的博客（建设中）</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-EN</language>
     <managingEditor>yourname@example.com (骚铭)</managingEditor>
     <webMaster>yourname@example.com (骚铭)</webMaster>
     <copyright>&lt;i class=&#39;fa fa-copyright&#39;&gt;&lt;/i&gt; 2016 &lt;i class=&#39;fa fa-mars&#39;&gt;&lt;/i&gt;骚铭科技 SM-Tech!</copyright>
     <lastBuildDate>Sat, 09 Jul 2016 16:37:09 +0800</lastBuildDate>
-    <atom:link href="http://yunyu-mr.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://yunyu-mr.github.io/topics/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>namespace 的使用</title>
@@ -145,25 +145,6 @@ int main() {
     return 0;
 }
 &lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Example</title>
-      <link>http://yunyu-mr.github.io/2016/07/08/example/</link>
-      <pubDate>Fri, 08 Jul 2016 09:45:19 +0800</pubDate>
-      <author>yourname@example.com (骚铭)</author>
-      <guid>http://yunyu-mr.github.io/2016/07/08/example/</guid>
-      <description>&lt;p&gt;$ E=mc^2 $&lt;/p&gt;
-
-&lt;p&gt;\( E = mC^2 \)&lt;/p&gt;
-
-&lt;p&gt;[ E_{v} = mc^2 ]
-[ C_1 = a_{v} + b ]&lt;/p&gt;
-
-&lt;p&gt;$$ C_1 = a_{v} + b $$&lt;/p&gt;
-
-&lt;div&gt;$$ C_1 = a_{v} + b $$&lt;/div&gt;
 </description>
     </item>
     
